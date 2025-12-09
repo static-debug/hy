@@ -219,7 +219,6 @@
 
         // 点击签到按钮
         $checkinBtn.on("click", function () {
-          alert(111);
           $nameModal.fadeIn(300).css({ display: "flex" });
           $checkinBtn.hide();
           $title.hide();
@@ -277,15 +276,22 @@
           });
         });
 
-        // 点击模态框外部关闭
-        $(window).on("click", async function (e) {
-          if ($(e.target).hasClass("modal-overlay")) {
-            $(e.target).fadeOut(300);
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            $title.show();
-            $checkinBtn.show();
-          }
+        $(".modal").on("click", (e) => {
+          e.stopPropagation();
         });
+
+        $(".modal-overlay").on("click", async (e) => {
+          $(e.target).fadeOut(300);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          $title.show();
+          $checkinBtn.show();
+        });
+
+        // // 点击模态框外部关闭
+        // $(window).on("click", async function (e) {
+        //   if ($(e.target).hasClass("modal-overlay")) {
+        //   }
+        // });
 
         async function onShowTip(message, type = "error") {
           clearTimeout(timer);
