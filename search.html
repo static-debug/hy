@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>郑恒晖&马惋仪婚宴酒席座位查询</title>
+    <script src="./jquery.min.js"></script>
+    <style>
+      @keyframes modalAppear {
+        0% {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      body {
+        background-color: #f5f7fa;
+        color: #333;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .home-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("http://114.132.78.27/bg2.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -1;
+        filter: brightness(0.9);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        display: none;
+        background-color: rgba(0, 0, 0, 0.15);
+        opacity: 0.6;
+      }
+
+      .modal {
+        border-radius: 4px;
+        width: 90%;
+        max-width: 450px;
+        padding: 30px;
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        animation: modalAppear 0.4s ease-out;
+      }
+
+      .modal-title {
+        margin-bottom: 24px;
+        font-size: 20px;
+        font-weight: 500;
+        text-align: center;
+      }
+
+      .input-group {
+        margin-bottom: 24px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e1e5ee;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+
+      .input-group input:focus {
+        outline: none;
+      }
+
+      ._btn-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .submit-btn {
+        padding: 15px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        margin: 0 auto;
+        width: 140px;
+        color: #333;
+        border-radius: 4px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+      }
+
+      .tips {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 50px;
+        color: #fff;
+        font-size: 14px;
+        transform: translateY(-100%);
+        background-color: rgba(0, 0, 0, 0.3);
+        z-index: 999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tips">1</div>
+
+    <div class="container">
+      <div class="home-bg"></div>
+    </div>
+
+    <!-- 姓名输入弹窗 -->
+    <div class="modal-overlay" id="nameModal">
+      <div class="modal">
+        <h3 class="modal-title">请输入您的姓名</h3>
+        <div class="input-group">
+          <input type="text" id="userName" placeholder="请输入您的姓名" />
+        </div>
+        <div class="_btn-wrapper">
+          <button class="submit-btn" id="submitBtn">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        const $nameModal = $("#nameModal");
+        const $userName = $("#userName");
+        const $submitBtn = $("#submitBtn");
+        const $tips = $(".tips");
+        let timer = null;
+        let timer2 = null;
+
+        $nameModal.fadeIn(300).css({ display: "flex" });
+
+        // 提交签到
+        $submitBtn.on("click", function () {
+          const name = $userName.val().trim();
+
+          if (timer2 !== null) {
+            return;
+          }
+
+          if (!name) {
+            alert("请输入您的姓名");
+            // $userName.focus();
+            return;
+          }
+
+          timer2 = window.setTimeout(() => {
+            timer2 = null;
+          }, 1000);
+
+          $.ajax({
+            url: "https://collect.helifuwu.cn/api/info/detailSingle",
+            // url: "http://localhost:3000/info/detailSingle",
+            method: "get",
+            data: {
+              search: `"n":"${name}"`,
+            },
+            headers: {
+              "Tag-Source": "hy",
+            },
+            success: async (res) => {
+              if (res.code === 0) {
+                const result = await signSuccess(res.data);
+                if (result === true) {
+                  onShowTip("签到成功");
+                  await new Promise((resolve) => setTimeout(resolve, 1500));
+                  // 跳转
+                  window.location.href = `./info.html?n=${res.data.n}&z=${res.data.z}&q=${res.data.q}`;
+                } else {
+                  // 签到失败提示
+                  onShowTip("签到失败，请稍后再试");
+                }
+              } else {
+                // 签到失败提示
+                onShowTip("未查询到席位，请联系管理员");
+              }
+            },
+            fail: (err) => {
+              // 签到失败提示
+              onShowTip("查询失败，请稍后再试");
+            },
+          });
+        });
+
+        async function onShowTip(message, type = "error") {
+          clearTimeout(timer);
+          $tips.css({ transform: `translateY(-100%)` });
+          $tips
+            .css({
+              transform: `translateY(0)`,
+              transition: `all 0.3s`,
+            })
+            .text(message);
+          timer = setTimeout(() => {
+            $tips.css({
+              transform: `translateY(-100%)`,
+              transition: `all 0.3s`,
+            });
+          }, 2000);
+        }
+      });
+
+      function signSuccess(data) {
+        return new Promise((resolve) => {
+          if (data?.s === "已签到") {
+            return resolve(true);
+          }
+          $.ajax({
+            url: "https://collect.helifuwu.cn/api/info/update",
+            method: "put",
+            headers: {
+              "Tag-Source": "hy",
+            },
+            data: {
+              ...(data || {}),
+              s: "已签到",
+              t: new Date(),
+            },
+            success: () => {
+              resolve(true);
+            },
+            fail: () => {
+              resolve(false);
+            },
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
