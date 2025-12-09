@@ -220,7 +220,7 @@
         // 点击签到按钮
         $checkinBtn.on("click", function () {
           $nameModal.fadeIn(300).css({ display: "flex" });
-          $userName.focus();
+          // $userName.focus();
           $checkinBtn.hide();
           $title.hide();
         });
@@ -235,7 +235,7 @@
 
           if (!name) {
             alert("请输入您的姓名");
-            $userName.focus();
+            // $userName.focus();
             return;
           }
 
