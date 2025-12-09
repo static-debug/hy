@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>xxx&xxx婚宴酒席座位查询</title>
+    <script src="./js/jquery.min.js"></script>
+    <style>
+      @keyframes modalAppear {
+        0% {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      body {
+        background-color: #f5f7fa;
+        color: #333;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .home-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("https://images.unsplash.com/photo-1511578314322-379afb476865?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -1;
+        filter: brightness(0.9);
+      }
+
+      .title {
+        color: white;
+        font-size: 28px;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 30px;
+        z-index: 2;
+        font-size: 26px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .checkin-btn {
+        background: #fff;
+        color: #666;
+        border: none;
+        padding: 18px 45px;
+        font-size: 20px;
+        font-weight: 600;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(74, 108, 247, 0.4);
+        transition: all 0.3s ease;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 40px;
+        font-size: 18px;
+      }
+
+      .checkin-btn:hover {
+        transform: translateY(-5px);
+      }
+
+      .checkin-btn:active {
+        transform: translateY(0);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        display: none;
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      .modal {
+        border-radius: 4px;
+        width: 90%;
+        max-width: 450px;
+        padding: 30px;
+        color: #fff;
+        background-color: rgba(100, 0, 1, 0.4);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        animation: modalAppear 0.4s ease-out;
+      }
+
+      .modal-title {
+        margin-bottom: 24px;
+        font-size: 20px;
+        font-weight: 500;
+        text-align: center;
+      }
+
+      .input-group {
+        margin-bottom: 24px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e1e5ee;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+
+      .input-group input:focus {
+        outline: none;
+      }
+
+      ._btn-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .submit-btn {
+        padding: 15px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        margin: 0 auto;
+        width: 140px;
+        color: #333;
+        border-radius: 4px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+      }
+
+      .tips {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 50px;
+        color: #fff;
+        font-size: 14px;
+        transform: translateY(-100%);
+        background-color: rgba(0, 0, 0, 0.3);
+        z-index: 999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tips">1</div>
+
+    <div class="container">
+      <div class="home-bg"></div>
+      <h1 class="title">欢迎参加xxx&xxx婚宴酒席</h1>
+      <button class="checkin-btn" id="checkinBtn">立即查询席位</button>
+    </div>
+
+    <!-- 姓名输入弹窗 -->
+    <div class="modal-overlay" id="nameModal">
+      <div class="modal">
+        <h3 class="modal-title">请输入您的姓名</h3>
+        <div class="input-group">
+          <input type="text" id="userName" placeholder="请输入您的姓名" />
+        </div>
+        <div class="_btn-wrapper">
+          <button class="submit-btn" id="submitBtn">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        const $nameModal = $("#nameModal");
+        const $userName = $("#userName");
+        const $submitBtn = $("#submitBtn");
+        const $tips = $(".tips");
+        const $title = $(".title");
+        const $checkinBtn = $("#checkinBtn");
+        let timer = null;
+        let timer2 = null;
+
+        // 点击签到按钮
+        $checkinBtn.on("click", function () {
+          $nameModal.fadeIn(300).css({ display: "flex" });
+          $userName.focus();
+          $checkinBtn.hide();
+          $title.hide();
+        });
+
+        // 提交签到
+        $submitBtn.on("click", function () {
+          const name = $userName.val().trim();
+
+          if (timer2 !== null) {
+            return;
+          }
+
+          if (!name) {
+            alert("请输入您的姓名");
+            $userName.focus();
+            return;
+          }
+
+          timer2 = window.setTimeout(() => {
+            timer2 = null;
+          }, 1000);
+
+          $.ajax({
+            url: "https://collect.helifuwu.cn/api/info/detailSingle",
+            // url: "http://localhost:3000/info/detailSingle",
+            method: "get",
+            data: {
+              search: `"n":"${name}"`,
+            },
+            headers: {
+              "Tag-Source": "hy",
+            },
+            success: async (res) => {
+              if (res.code === 0) {
+                const result = await signSuccess(res.data);
+                if (result === true) {
+                  onShowTip("签到成功");
+                  await new Promise((resolve) => setTimeout(resolve, 1500));
+                  // 跳转
+                  window.location.href = `./info.html?n=${res.data.n}&z=${res.data.z}&q=${res.data.q}`;
+                } else {
+                  // 签到失败提示
+                  onShowTip("签到失败，请稍后再试");
+                }
+              } else {
+                // 签到失败提示
+                onShowTip("未查询到席位，请联系管理员");
+              }
+            },
+            fail: (err) => {
+              // 签到失败提示
+              onShowTip("查询失败，请稍后再试");
+            },
+          });
+        });
+
+        // 点击模态框外部关闭
+        $(window).on("click", async function (e) {
+          if ($(e.target).hasClass("modal-overlay")) {
+            $(e.target).fadeOut(300);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            $title.show();
+            $checkinBtn.show();
+          }
+        });
+
+        async function onShowTip(message, type = "error") {
+          clearTimeout(timer);
+          $tips.css({ transform: `translateY(-100%)` });
+          $tips
+            .css({
+              transform: `translateY(0)`,
+              transition: `all 0.3s`,
+            })
+            .text(message);
+          timer = setTimeout(() => {
+            $tips.css({
+              transform: `translateY(-100%)`,
+              transition: `all 0.3s`,
+            });
+          }, 2000);
+        }
+      });
+
+      function signSuccess(data) {
+        return new Promise((resolve) => {
+          if (data?.s === "已签到") {
+            return resolve(true);
+          }
+          $.ajax({
+            url: "https://collect.helifuwu.cn/api/info/update",
+            method: "put",
+            headers: {
+              "Tag-Source": "hy",
+            },
+            data: {
+              ...(data || {}),
+              s: "已签到",
+              t: new Date(),
+            },
+            success: () => {
+              resolve(true);
+            },
+            fail: () => {
+              resolve(false);
+            },
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
